@@ -2,7 +2,7 @@
 import EmailGenerator from "@/components/EmailGenerator";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Database, Mail } from "lucide-react";
+import { Database, Mail, Send } from "lucide-react";
 
 const Index = () => {
   return (
@@ -19,6 +19,12 @@ const Index = () => {
           <Button variant="outline" className="bg-white/80 backdrop-blur-sm shadow-lg">
             <Mail className="h-4 w-4 mr-2" />
             Email Generator
+          </Button>
+        </Link>
+        <Link to="/mail-sender">
+          <Button variant="outline" className="bg-white/80 backdrop-blur-sm shadow-lg">
+            <Send className="h-4 w-4 mr-2" />
+            Send Mail
           </Button>
         </Link>
       </div>
