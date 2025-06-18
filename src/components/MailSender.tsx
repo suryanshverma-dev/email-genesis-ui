@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -136,10 +137,9 @@ const MailSender = () => {
                   multiple
                   onChange={handleFileChange}
                   className="w-full"
-                  accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.csv,.xlsx,.xls"
                 />
                 <p className="text-xs text-gray-500">
-                  You can attach multiple files. Supported formats: PDF, DOC, DOCX, TXT, images, CSV, Excel files
+                  You can attach multiple files of any format
                 </p>
               </div>
 
