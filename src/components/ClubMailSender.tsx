@@ -1,18 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Users, Mail, Database, FileText, Paperclip } from 'lucide-react';
+import { Send, Users, Mail, Database, FileText, Bold, Underline } from 'lucide-react';
 
 const ClubMailSender = () => {
   const [htmlContent, setHtmlContent] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const editorRef = useRef<HTMLDivElement>(null);
 
   const teams = [
     { value: 'ALL', label: 'All Members' },
@@ -20,6 +20,27 @@ const ClubMailSender = () => {
     { value: 'core', label: 'Core Team' },
     { value: 'android', label: 'Android Team' }
   ];
+
+  const handleBold = () => {
+    document.execCommand('bold', false, '');
+    editorRef.current?.focus();
+  };
+
+  const handleUnderline = () => {
+    document.execCommand('underline', false, '');
+    editorRef.current?.focus();
+  };
+
+  const handleColorChange = (color: string) => {
+    document.execCommand('foreColor', false, color);
+    editorRef.current?.focus();
+  };
+
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      setHtmlContent(editorRef.current.innerHTML);
+    }
+  };
 
   const handleSendMail = async () => {
     if (!htmlContent.trim()) {
@@ -63,6 +84,9 @@ const ClubMailSender = () => {
         // Reset form
         setHtmlContent('');
         setSelectedTeam('');
+        if (editorRef.current) {
+          editorRef.current.innerHTML = '';
+        }
       } else {
         throw new Error('Failed to send email');
       }
@@ -146,20 +170,57 @@ const ClubMailSender = () => {
                 </Select>
               </div>
 
-              {/* HTML Content */}
+              {/* Rich Text Editor */}
               <div className="space-y-2">
-                <Label htmlFor="content" className="text-sm font-medium text-gray-700">
-                  Email Content (HTML) *
+                <Label className="text-sm font-medium text-gray-700">
+                  Email Content *
                 </Label>
-                <Textarea
-                  id="content"
-                  placeholder="Enter your HTML email content here..."
-                  value={htmlContent}
-                  onChange={(e) => setHtmlContent(e.target.value)}
-                  className="w-full min-h-[300px] font-mono text-sm"
+                
+                {/* Toolbar */}
+                <div className="flex items-center gap-2 p-2 border rounded-t-md bg-gray-50">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBold}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Bold className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleUnderline}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Underline className="h-4 w-4" />
+                  </Button>
+                  <div className="flex gap-1">
+                    {['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'].map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className="w-6 h-6 rounded border border-gray-300"
+                        style={{ backgroundColor: color }}
+                        onClick={() => handleColorChange(color)}
+                        title={`Set text color to ${color}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Editor */}
+                <div
+                  ref={editorRef}
+                  contentEditable
+                  className="w-full min-h-[300px] p-4 border border-t-0 rounded-b-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  style={{ whiteSpace: 'pre-wrap' }}
+                  onInput={handleEditorInput}
+                  placeholder="Start typing your email content here..."
                 />
                 <p className="text-xs text-gray-500">
-                  You can write HTML content here. It will be sent as formatted email.
+                  Use the toolbar above to format your text. The content will be sent as HTML email.
                 </p>
               </div>
 

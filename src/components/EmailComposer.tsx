@@ -1,343 +1,163 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Mail, Database, FileText, Calendar, Award, DollarSign, Users, GraduationCap } from 'lucide-react';
-
-interface EmailTemplate {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  content: string;
-}
+import { Send, Users, Mail, Database, FileText, Bold, Underline, Save } from 'lucide-react';
 
 const EmailComposer = () => {
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('blank');
-  const [content, setContent] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [htmlContent, setHtmlContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  const templates: EmailTemplate[] = [
-    {
-      id: 'blank',
-      name: 'Blank Email',
-      icon: <FileText className="h-5 w-5" />,
-      content: ''
-    },
-    {
-      id: 'event-registration',
-      name: 'Event Registration',
-      icon: <Calendar className="h-5 w-5" />,
-      content: `Subject: Registration Open for [Event Name] - [Club Name]
+  const templates = {
+    blank: '',
+    eventRegistration: `
+      <h2 style="color: #2563eb; margin-bottom: 20px;">Event Registration Confirmation</h2>
+      <p>Dear Student,</p>
+      <p>Thank you for registering for our upcoming event. Your registration has been successfully confirmed.</p>
+      <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="color: #1f2937; margin-bottom: 10px;">Event Details:</h3>
+        <p><strong>Event:</strong> [Event Name]</p>
+        <p><strong>Date:</strong> [Event Date]</p>
+        <p><strong>Time:</strong> [Event Time]</p>
+        <p><strong>Venue:</strong> [Event Venue]</p>
+      </div>
+      <p>Please arrive 15 minutes before the event starts. Bring a valid ID for verification.</p>
+      <p>Best regards,<br>[Club Name] Team</p>
+    `,
+    eventInvitation: `
+      <h2 style="color: #7c3aed; margin-bottom: 20px;">You're Invited!</h2>
+      <p>Dear Students,</p>
+      <p>We are excited to invite you to our upcoming event that promises to be both educational and entertaining.</p>
+      <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+        <h3 style="color: #92400e; margin-bottom: 15px;">Event Highlights:</h3>
+        <ul style="color: #92400e;">
+          <li>Expert speakers from the industry</li>
+          <li>Networking opportunities</li>
+          <li>Certificate of participation</li>
+          <li>Refreshments will be provided</li>
+        </ul>
+      </div>
+      <p>Registration is mandatory. Limited seats available.</p>
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="[Registration Link]" style="background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Register Now</a>
+      </p>
+      <p>Looking forward to seeing you there!</p>
+      <p>Warm regards,<br>[Club Name]</p>
+    `,
+    certification: `
+      <div style="text-align: center; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px;">
+        <h1 style="margin-bottom: 30px; font-size: 28px;">Certificate of Achievement</h1>
+        <p style="font-size: 18px; margin-bottom: 20px;">This is to certify that</p>
+        <h2 style="margin: 20px 0; font-size: 24px; text-decoration: underline;">[Student Name]</h2>
+        <p style="font-size: 16px; margin-bottom: 30px;">has successfully completed [Course/Event Name] conducted by [Club Name]</p>
+        <div style="margin: 30px 0;">
+          <p><strong>Date:</strong> [Completion Date]</p>
+          <p><strong>Duration:</strong> [Course Duration]</p>
+          <p><strong>Grade:</strong> [Grade/Score]</p>
+        </div>
+      </div>
+      <p>Dear [Student Name],</p>
+      <p>Congratulations on successfully completing our program! Your dedication and hard work have paid off.</p>
+      <p>This certificate validates your skills and knowledge in the subject area. We hope this achievement opens new doors for your career.</p>
+      <p>Best wishes for your future endeavors!</p>
+      <p>Sincerely,<br>[Club Name] Team</p>
+    `,
+    sponsorship: `
+      <h2 style="color: #059669; margin-bottom: 20px;">Partnership Opportunity</h2>
+      <p>Dear [Company Name] Team,</p>
+      <p>Greetings from [Club Name] at [College Name]! We hope this email finds you well.</p>
+      <p>We are reaching out to explore a potential partnership opportunity for our upcoming event.</p>
+      <div style="background-color: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #059669;">
+        <h3 style="color: #065f46; margin-bottom: 15px;">Event Overview:</h3>
+        <p><strong>Event:</strong> [Event Name]</p>
+        <p><strong>Expected Attendees:</strong> [Number] students</p>
+        <p><strong>Target Audience:</strong> [Target Audience]</p>
+        <p><strong>Date & Venue:</strong> [Event Details]</p>
+      </div>
+      <h3 style="color: #059669;">Why Partner With Us?</h3>
+      <ul>
+        <li>Direct access to talented students</li>
+        <li>Brand visibility among young professionals</li>
+        <li>Opportunity to showcase your company culture</li>
+        <li>Potential recruitment pipeline</li>
+      </ul>
+      <p>We offer various sponsorship packages tailored to meet your marketing objectives and budget.</p>
+      <p>We would love to discuss this opportunity further and explore how we can create mutual value.</p>
+      <p>Thank you for considering our proposal. We look forward to hearing from you.</p>
+      <p>Best regards,<br>[Your Name]<br>[Position]<br>[Club Name]<br>[Contact Information]</p>
+    `,
+    clubRecruitment: `
+      <h2 style="color: #dc2626; margin-bottom: 20px;">Join Our Amazing Team!</h2>
+      <p>Hey Fellow Students! 👋</p>
+      <p>Are you passionate about [Club Focus Area]? Do you want to make a difference while building valuable skills?</p>
+      <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+        <h3 style="color: #991b1b; margin-bottom: 15px;">[Club Name] is Recruiting!</h3>
+        <p>We're looking for enthusiastic students to join our team and help us create impactful events and initiatives.</p>
+      </div>
+      <h3 style="color: #dc2626;">What We Offer:</h3>
+      <ul>
+        <li>🚀 Leadership development opportunities</li>
+        <li>🤝 Networking with industry professionals</li>
+        <li>📜 Certificates and recognition</li>
+        <li>💡 Platform to implement your creative ideas</li>
+        <li>🎯 Skill development workshops</li>
+      </ul>
+      <h3 style="color: #dc2626;">Open Positions:</h3>
+      <ul>
+        <li>Technical Team Members</li>
+        <li>Event Management Team</li>
+        <li>Design and Creative Team</li>
+        <li>Marketing and Social Media Team</li>
+      </ul>
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="[Application Link]" style="background-color: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Apply Now</a>
+      </p>
+      <p><strong>Application Deadline:</strong> [Deadline Date]</p>
+      <p>Don't miss this opportunity to be part of something amazing!</p>
+      <p>Cheers,<br>[Club Name] Recruitment Team</p>
+    `
+  };
 
-Dear Students,
+  const handleBold = () => {
+    document.execCommand('bold', false, '');
+    editorRef.current?.focus();
+  };
 
-We are excited to announce that registration is now open for [Event Name], organized by [Club Name].
+  const handleUnderline = () => {
+    document.execCommand('underline', false, '');
+    editorRef.current?.focus();
+  };
 
-Event Details:
-• Event: [Event Name]
-• Date: [Event Date]
-• Time: [Event Time]
-• Venue: [Event Venue]
-• Registration Deadline: [Registration Deadline]
+  const handleColorChange = (color: string) => {
+    document.execCommand('foreColor', false, color);
+    editorRef.current?.focus();
+  };
 
-About the Event:
-[Brief description of the event, its purpose, and what participants can expect to learn or gain from attending.]
-
-Registration Requirements:
-• Open to all students of [College Name]
-• Registration fee: [Amount/Free]
-• Limited seats available - First come, first served
-
-How to Register:
-1. Fill out the registration form: [Registration Link]
-2. Submit required documents (if any)
-3. Pay registration fee (if applicable)
-
-For any queries, please contact:
-[Organizer Name] - [Contact Number]
-[Email ID]
-
-Don't miss this opportunity to enhance your skills and network with fellow students!
-
-Best regards,
-[Club Name] Team
-[College Name]`
-    },
-    {
-      id: 'event-invitation',
-      name: 'Event Invitation',
-      icon: <Users className="h-5 w-5" />,
-      content: `Subject: You're Invited! [Event Name] by [Club Name]
-
-Dear [Recipient Name],
-
-It is our pleasure to invite you to [Event Name], an exciting initiative by [Club Name] at [College Name].
-
-Event Highlights:
-• Theme: [Event Theme]
-• Date & Time: [Date] at [Time]
-• Venue: [Venue Details]
-• Duration: [Duration]
-
-Special Features:
-• Guest Speaker: [Speaker Name & Credentials]
-• Interactive workshops
-• Networking opportunities
-• Certificate of participation
-• Refreshments will be provided
-
-This event promises to be an enriching experience that will provide valuable insights into [Event Topic/Field]. We believe your presence would add great value to the discussions and interactions.
-
-RSVP Details:
-Please confirm your attendance by [RSVP Date] by replying to this email or contacting us at [Contact Information].
-
-We look forward to your gracious presence at this event.
-
-Warm regards,
-
-[Your Name]
-[Your Position]
-[Club Name]
-[College Name]
-[Contact Information]`
-    },
-    {
-      id: 'certification',
-      name: 'Certification Award',
-      icon: <Award className="h-5 w-5" />,
-      content: `Subject: Certificate of [Achievement Type] - [Recipient Name]
-
-Dear [Recipient Name],
-
-Congratulations! It gives us immense pleasure to inform you that you have been awarded the Certificate of [Achievement Type] for your outstanding performance in [Event/Competition/Course Name].
-
-Achievement Details:
-• Event/Program: [Event Name]
-• Date of Achievement: [Date]
-• Category: [Category/Level]
-• Performance Score: [Score/Grade]
-• Rank/Position: [Position if applicable]
-
-Your dedication, hard work, and exceptional skills have been truly commendable. This achievement reflects your commitment to excellence and your potential for future success.
-
-Certificate Collection:
-• Collection Date: [Date]
-• Time: [Time]
-• Venue: [Location]
-• Required Documents: [ID Proof/Other requirements]
-
-Alternatively, if you prefer digital delivery, please confirm your email address, and we will send you a high-resolution digital certificate.
-
-Once again, congratulations on this well-deserved recognition. We wish you continued success in all your future endeavors.
-
-Best wishes,
-
-[Your Name]
-[Your Designation]
-[Department/Club Name]
-[College Name]
-[Contact Information]`
-    },
-    {
-      id: 'sponsorship',
-      name: 'Sponsorship Request',
-      icon: <DollarSign className="h-5 w-5" />,
-      content: `Subject: Sponsorship Proposal for [Event Name] - [College Name]
-
-Dear [Company/Organization Name],
-
-Greetings from [Club Name], [College Name]!
-
-We are writing to invite your esteemed organization to be a sponsor for our upcoming event "[Event Name]" scheduled for [Event Date].
-
-About Our Event:
-[Event Name] is [brief description of the event, its significance, and objectives]. This event aims to [purpose and goals of the event].
-
-Event Details:
-• Date: [Event Date]
-• Duration: [Duration]
-• Expected Attendance: [Number] students and faculty
-• Target Audience: [Describe audience - students, professionals, etc.]
-• Venue: [Venue Details]
-
-Why Partner With Us?
-
-Brand Visibility:
-• Logo placement on all promotional materials
-• Banners and standees at the event venue
-• Social media promotion across our platforms
-• Mention in press releases and media coverage
-
-Networking Opportunities:
-• Direct interaction with talented students
-• Potential recruitment opportunities
-• Association with academic excellence
-
-Community Impact:
-• Support education and student development
-• Contribute to skill enhancement initiatives
-• Build long-term relationships with the academic community
-
-Sponsorship Packages:
-[Briefly mention different sponsorship tiers and benefits]
-
-We would be honored to have [Company Name] as our partner in this endeavor. We are confident that this collaboration will be mutually beneficial and look forward to a long-term association.
-
-We would appreciate the opportunity to discuss this proposal further at your convenience. Please let us know your availability for a meeting.
-
-Thank you for considering our request. We eagerly await your positive response.
-
-Warm regards,
-
-[Your Name]
-[Your Position]
-[Club Name]
-[College Name]
-[Contact Information]
-[Email Address]
-
-Attachments: [Event Proposal Document, Sponsorship Brochure]`
-    },
-    {
-      id: 'club-recruitment',
-      name: 'Club Recruitment',
-      icon: <GraduationCap className="h-5 w-5" />,
-      content: `Subject: Join [Club Name] - Applications Open for New Members!
-
-Dear Fellow Students,
-
-Are you passionate about [Club's Focus Area]? Do you want to develop your skills, network with like-minded peers, and make a meaningful impact on campus?
-
-[Club Name] is now recruiting new members for the academic year [Year]!
-
-About [Club Name]:
-[Brief description of the club, its mission, vision, and activities]. Since our establishment in [Year], we have been committed to [club's main objectives and achievements].
-
-What We Offer:
-• Skill Development: Workshops, training sessions, and hands-on experience
-• Leadership Opportunities: Take on roles and lead initiatives
-• Networking: Connect with alumni, industry professionals, and peers
-• Experience: Organize events, competitions, and community service projects
-• Recognition: Certificates, awards, and portfolio enhancement
-
-Membership Benefits:
-• Access to exclusive events and workshops
-• Mentorship from senior members and alumni
-• Opportunity to represent the college in competitions
-• Professional development and career guidance
-• Fun and engaging social activities
-
-Eligibility Criteria:
-• Currently enrolled student at [College Name]
-• Minimum GPA requirement: [GPA if applicable]
-• Passion for [Club's Focus Area]
-• Commitment to active participation
-
-Application Process:
-1. Fill out the membership application form: [Application Link]
-2. Submit a brief statement of interest (200-300 words)
-3. Attend the information session on [Date & Time]
-4. Complete the interview process (if shortlisted)
-
-Important Dates:
-• Application Deadline: [Date]
-• Information Session: [Date & Time, Venue]
-• Interview Dates: [Date Range]
-• Results Announcement: [Date]
-
-Ready to be part of something amazing? Apply now and embark on a journey of growth, learning, and impact!
-
-For any questions, contact us at:
-[Contact Email]
-[Contact Number]
-[Social Media Handles]
-
-We look forward to welcoming you to the [Club Name] family!
-
-Best regards,
-
-[Your Name]
-[Your Position]
-[Club Name]
-[College Name]`
-    }
-  ];
-
-  const handleTemplateSelect = (templateId: string) => {
-    const template = templates.find(t => t.id === templateId);
-    if (template) {
-      setSelectedTemplate(templateId);
-      setContent(template.content);
+  const handleTemplateSelect = (template: string) => {
+    setSelectedTemplate(template);
+    const content = templates[template as keyof typeof templates] || '';
+    setHtmlContent(content);
+    if (editorRef.current) {
+      editorRef.current.innerHTML = content;
     }
   };
 
-  const convertToHTML = (plainText: string) => {
-    // Convert plain text to HTML with proper formatting
-    const htmlContent = plainText
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br>')
-      .replace(/\[(.*?)\]/g, '<strong>[$1]</strong>')
-      .replace(/•/g, '&bull;');
-    
-    return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>College Email</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f9f9f9;
-        }
-        .email-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        p {
-            margin-bottom: 16px;
-        }
-        strong {
-            color: #2563eb;
-        }
-        .signature {
-            margin-top: 30px;
-            border-top: 2px solid #e5e7eb;
-            padding-top: 20px;
-        }
-        ul {
-            padding-left: 20px;
-        }
-        li {
-            margin-bottom: 8px;
-        }
-    </style>
-</head>
-<body>
-    <div class="email-container">
-        <p>${htmlContent}</p>
-    </div>
-</body>
-</html>`;
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      setHtmlContent(editorRef.current.innerHTML);
+    }
   };
 
   const handleSaveEmail = async () => {
-    if (!content.trim()) {
+    if (!htmlContent.trim()) {
       toast({
         title: "Error",
-        description: "Please write some content for your email.",
+        description: "Please compose your email content.",
         variant: "destructive",
       });
       return;
@@ -346,32 +166,23 @@ Best regards,
     setIsLoading(true);
 
     try {
-      const htmlContent = convertToHTML(content);
-      
-      const emailData = {
-        plainContent: content,
-        htmlContent: htmlContent,
-        template: selectedTemplate,
-        createdAt: new Date().toISOString()
-      };
-
       const response = await fetch('/api/save-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(emailData),
+        body: JSON.stringify({
+          htmlContent,
+          template: selectedTemplate,
+          createdAt: new Date().toISOString(),
+        }),
       });
 
       if (response.ok) {
         toast({
           title: "Success!",
-          description: "Email has been saved successfully!",
+          description: "Email saved successfully!",
         });
-        
-        // Reset form
-        setContent('');
-        setSelectedTemplate('blank');
       } else {
         throw new Error('Failed to save email');
       }
@@ -388,7 +199,7 @@ Best regards,
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-4">
       {/* Navigation Header */}
       <div className="fixed top-4 right-4 z-50 flex space-x-2">
         <a href="/file-processor">
@@ -415,93 +226,127 @@ Best regards,
             Compose Email
           </Button>
         </a>
+        <a href="/club-mail">
+          <Button variant="outline" className="bg-white/80 backdrop-blur-sm shadow-lg">
+            <Users className="h-4 w-4 mr-2" />
+            Club Mail
+          </Button>
+        </a>
       </div>
 
-      <div className="max-w-6xl mx-auto pt-20">
+      <div className="max-w-4xl mx-auto pt-20">
         <Card className="shadow-xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2">
-              <FileText className="h-8 w-8 text-purple-600" />
-              College Email Composer
+              <FileText className="h-8 w-8 text-blue-600" />
+              Email Composer
             </CardTitle>
             <p className="text-lg text-gray-600 mt-2">
-              Create professional college emails with ready-to-use templates
+              Create professional emails using templates or start from scratch
             </p>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="space-y-6">
               {/* Template Selection */}
-              <div className="lg:col-span-1">
-                <h3 className="text-lg font-semibold mb-4">Choose Template</h3>
-                <div className="space-y-2">
-                  {templates.map((template) => (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-gray-700">
+                  Choose a Template
+                </Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    { key: 'blank', label: 'Blank Email', color: 'bg-gray-100 hover:bg-gray-200' },
+                    { key: 'eventRegistration', label: 'Event Registration', color: 'bg-blue-100 hover:bg-blue-200' },
+                    { key: 'eventInvitation', label: 'Event Invitation', color: 'bg-purple-100 hover:bg-purple-200' },
+                    { key: 'certification', label: 'Certification', color: 'bg-green-100 hover:bg-green-200' },
+                    { key: 'sponsorship', label: 'Sponsorship Request', color: 'bg-yellow-100 hover:bg-yellow-200' },
+                    { key: 'clubRecruitment', label: 'Club Recruitment', color: 'bg-red-100 hover:bg-red-200' }
+                  ].map((template) => (
                     <Button
-                      key={template.id}
-                      variant={selectedTemplate === template.id ? "default" : "outline"}
-                      className="w-full justify-start h-auto p-4"
-                      onClick={() => handleTemplateSelect(template.id)}
+                      key={template.key}
+                      variant="outline"
+                      className={`p-4 h-auto text-center ${template.color} ${
+                        selectedTemplate === template.key ? 'ring-2 ring-blue-500' : ''
+                      }`}
+                      onClick={() => handleTemplateSelect(template.key)}
                     >
-                      <div className="flex items-center gap-3">
-                        {template.icon}
-                        <span className="text-sm">{template.name}</span>
-                      </div>
+                      {template.label}
                     </Button>
                   ))}
                 </div>
               </div>
 
-              {/* Email Composition */}
-              <div className="lg:col-span-2">
-                <div className="space-y-6">
-                  {/* Content */}
-                  <div className="space-y-2">
-                    <Label htmlFor="content" className="text-sm font-medium text-gray-700">
-                      Email Content *
-                    </Label>
-                    <Textarea
-                      id="content"
-                      placeholder="Write your email content here or select a template to get started..."
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      className="w-full min-h-[400px] font-mono text-sm"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Use [placeholders] for dynamic content. Subject line is included in the template content.
-                    </p>
-                  </div>
-
-                  {/* Preview */}
-                  {content && (
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-700">
-                        Preview
-                      </Label>
-                      <div className="bg-gray-50 p-4 rounded-lg border max-h-60 overflow-y-auto">
-                        <div className="text-sm whitespace-pre-wrap">{content}</div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Save Button */}
+              {/* Rich Text Editor */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">
+                  Email Content *
+                </Label>
+                
+                {/* Toolbar */}
+                <div className="flex items-center gap-2 p-2 border rounded-t-md bg-gray-50">
                   <Button
-                    onClick={handleSaveEmail}
-                    disabled={isLoading || !content.trim()}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-semibold"
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBold}
+                    className="h-8 w-8 p-0"
                   >
-                    {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Saving Email...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
-                        Save Email as HTML
-                      </div>
-                    )}
+                    <Bold className="h-4 w-4" />
                   </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleUnderline}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Underline className="h-4 w-4" />
+                  </Button>
+                  <div className="flex gap-1">
+                    {['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'].map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className="w-6 h-6 rounded border border-gray-300"
+                        style={{ backgroundColor: color }}
+                        onClick={() => handleColorChange(color)}
+                        title={`Set text color to ${color}`}
+                      />
+                    ))}
+                  </div>
                 </div>
+
+                {/* Editor */}
+                <div
+                  ref={editorRef}
+                  contentEditable
+                  className="w-full min-h-[400px] p-4 border border-t-0 rounded-b-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{ whiteSpace: 'pre-wrap' }}
+                  onInput={handleEditorInput}
+                  placeholder="Start composing your email here..."
+                />
+                <p className="text-xs text-gray-500">
+                  Use the toolbar above to format your text. Select a template to get started with pre-designed content.
+                </p>
               </div>
+
+              {/* Save Button */}
+              <Button
+                onClick={handleSaveEmail}
+                disabled={isLoading || !htmlContent.trim()}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Saving Email...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Save className="h-5 w-5" />
+                    Save Email
+                  </div>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>
