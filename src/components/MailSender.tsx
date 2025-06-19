@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Paperclip, Mail, Database } from 'lucide-react';
+import { Send, Paperclip, Mail, Database, FileText } from 'lucide-react';
 
 const MailSender = () => {
   const [subject, setSubject] = useState('');
@@ -93,6 +93,12 @@ const MailSender = () => {
           <Button variant="outline" className="bg-white/80 backdrop-blur-sm shadow-lg">
             <Send className="h-4 w-4 mr-2" />
             Send Mail
+          </Button>
+        </a>
+        <a href="/email-composer">
+          <Button variant="outline" className="bg-white/80 backdrop-blur-sm shadow-lg">
+            <FileText className="h-4 w-4 mr-2" />
+            Compose Email
           </Button>
         </a>
       </div>
