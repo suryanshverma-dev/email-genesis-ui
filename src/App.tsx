@@ -9,6 +9,7 @@ import FileProcessorPage from "./pages/FileProcessor";
 import NotFound from "./pages/NotFound";
 import MailSenderPage from "./pages/MailSender";
 import EmailComposerPage from "./pages/EmailComposer";
+import ClubMailPage from "./pages/ClubMail";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/file-processor" element={<FileProcessorPage />} />
           <Route path="/mail-sender" element={<MailSenderPage />} />
           <Route path="/email-composer" element={<EmailComposerPage />} />
+          <Route path="/club-mail" element={<ClubMailPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
