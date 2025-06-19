@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Users, Mail, Database, FileText, Bold, Underline } from 'lucide-react';
+import { Send, Users, Mail, Database, FileText, Bold, Underline, Italic, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 
 const ClubMailSender = () => {
   const [htmlContent, setHtmlContent] = useState('');
@@ -26,13 +26,33 @@ const ClubMailSender = () => {
     editorRef.current?.focus();
   };
 
+  const handleItalic = () => {
+    document.execCommand('italic', false, '');
+    editorRef.current?.focus();
+  };
+
   const handleUnderline = () => {
     document.execCommand('underline', false, '');
     editorRef.current?.focus();
   };
 
+  const handleFontSize = (size: string) => {
+    document.execCommand('fontSize', false, size);
+    editorRef.current?.focus();
+  };
+
+  const handleAlignment = (align: string) => {
+    document.execCommand('justify' + align, false, '');
+    editorRef.current?.focus();
+  };
+
   const handleColorChange = (color: string) => {
     document.execCommand('foreColor', false, color);
+    editorRef.current?.focus();
+  };
+
+  const handleBackgroundColor = (color: string) => {
+    document.execCommand('backColor', false, color);
     editorRef.current?.focus();
   };
 
@@ -176,35 +196,117 @@ const ClubMailSender = () => {
                   Email Content *
                 </Label>
                 
-                {/* Toolbar */}
-                <div className="flex items-center gap-2 p-2 border rounded-t-md bg-gray-50">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleBold}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Bold className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleUnderline}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Underline className="h-4 w-4" />
-                  </Button>
-                  <div className="flex gap-1">
-                    {['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'].map((color) => (
+                {/* Enhanced Toolbar */}
+                <div className="flex flex-wrap items-center gap-2 p-3 border rounded-t-md bg-gray-50">
+                  {/* Text Formatting */}
+                  <div className="flex gap-1 border-r pr-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleBold}
+                      className="h-8 w-8 p-0"
+                      title="Bold"
+                    >
+                      <Bold className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleItalic}
+                      className="h-8 w-8 p-0"
+                      title="Italic"
+                    >
+                      <Italic className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleUnderline}
+                      className="h-8 w-8 p-0"
+                      title="Underline"
+                    >
+                      <Underline className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Font Size */}
+                  <div className="flex gap-1 border-r pr-2">
+                    <select
+                      onChange={(e) => handleFontSize(e.target.value)}
+                      className="text-xs border rounded px-2 py-1"
+                      title="Font Size"
+                    >
+                      <option value="">Size</option>
+                      <option value="1">Small</option>
+                      <option value="3">Normal</option>
+                      <option value="5">Large</option>
+                      <option value="7">X-Large</option>
+                    </select>
+                  </div>
+
+                  {/* Alignment */}
+                  <div className="flex gap-1 border-r pr-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAlignment('Left')}
+                      className="h-8 w-8 p-0"
+                      title="Align Left"
+                    >
+                      <AlignLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAlignment('Center')}
+                      className="h-8 w-8 p-0"
+                      title="Align Center"
+                    >
+                      <AlignCenter className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAlignment('Right')}
+                      className="h-8 w-8 p-0"
+                      title="Align Right"
+                    >
+                      <AlignRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Text Color */}
+                  <div className="flex gap-1 border-r pr-2">
+                    <span className="text-xs text-gray-600 mr-1">Text:</span>
+                    {['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500'].map((color) => (
                       <button
                         key={color}
                         type="button"
-                        className="w-6 h-6 rounded border border-gray-300"
+                        className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
                         style={{ backgroundColor: color }}
                         onClick={() => handleColorChange(color)}
                         title={`Set text color to ${color}`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Background Color */}
+                  <div className="flex gap-1">
+                    <span className="text-xs text-gray-600 mr-1">Background:</span>
+                    {['#FFFFFF', '#FFEB9C', '#9FC5E8', '#D5A6BD', '#B6D7A8', '#FFD1DC', '#E1D5E7', '#F4CCCC'].map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
+                        style={{ backgroundColor: color }}
+                        onClick={() => handleBackgroundColor(color)}
+                        title={`Set background color to ${color}`}
                       />
                     ))}
                   </div>
@@ -214,13 +316,13 @@ const ClubMailSender = () => {
                 <div
                   ref={editorRef}
                   contentEditable
-                  className="w-full min-h-[300px] p-4 border border-t-0 rounded-b-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full min-h-[300px] p-4 border border-t-0 rounded-b-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                   style={{ whiteSpace: 'pre-wrap' }}
                   onInput={handleEditorInput}
-                  placeholder="Start typing your email content here..."
+                  suppressContentEditableWarning={true}
                 />
                 <p className="text-xs text-gray-500">
-                  Use the toolbar above to format your text. The content will be sent as HTML email.
+                  Use the toolbar above to format your text. Start typing your email content in the editor area.
                 </p>
               </div>
 
